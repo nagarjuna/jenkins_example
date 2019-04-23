@@ -16,16 +16,21 @@ node {
       rvmSh 'npm test'
     }
     if (env.BRANCH_NAME == 'master') {
-      stage ('Prepare Build') {
-        echo 'Compile assets'
-        echo 'Compress the build'
-        echo 'Push the build to Artifactory'
-      }
       stage ('Accept Staging Deployment') {
-        deployToStaging = canDeployToStaging()
-        if(deployToStaging) {
+        deploy = canDeploy()
+        if(deploy) {
           stage 'Deploy to Staging'
             echo 'Will deploy to Staging'
+        }
+      }
+    }
+    def tag = sh(returnStdout: true, script: "git tag --contains | head -1").trim()
+    if (tag) {
+      stage ('Accept Production Deployment') {
+        deploy = canDeploy()
+        if(deploy) {
+          stage 'Deploy to Production'
+            echo 'Will deploy to Production'
         }
       }
     }
@@ -56,12 +61,12 @@ def notifyCulpritsOnEveryUnstableBuild() {
   ])
 }
 
-def canDeployToStaging() {
-    def deployToStaging = input(id: 'deployToStaging',
-                                   message: 'Let\'s deploy to Staging?',
+def canDeploy() {
+    def deploy = input(id: 'deploy',
+                                   message: 'Let\'s deploy?',
                                    parameters: [
-                                     [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Deploy?', name: 'deployToStaging']
+                                     [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Deploy?', name: 'deploy']
                                    ])
-    echo ('deployToStaging:'+deployToStaging)
-  deployToStaging
+    echo ('deploy:'+deploy)
+  deploy
 }
