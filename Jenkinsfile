@@ -4,6 +4,7 @@ node {
       checkout scm
     }
     stage ('Install Gems') {
+      echo "${env.BRANCH_NAME}"
       rvmSh 'whoami'
       rvmSh 'which ruby'
       rvmSh 'whereis rvm'
