@@ -3,6 +3,9 @@ node {
     stage ('Checkout') {
       checkout scm
     }
+
+
+    
     stage ('Install Gems') {
       rvmSh 'whoami'
       rvmSh 'which ruby'
