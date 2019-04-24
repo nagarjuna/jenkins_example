@@ -1,5 +1,7 @@
 node {
   try {
+    agent { docker 'jenkins-ubuntu-ruby-2.5.3:latest' }
+    
     stage ('Checkout') {
       checkout scm
     }
