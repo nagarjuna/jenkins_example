@@ -1,22 +1,23 @@
-node {
+node('docker'){
   try {
-    agent { docker 'jenkins-ubuntu-ruby-2.5.3:latest' }
+    docker.image('jenkins-ubuntu-ruby-2.5.3:latest').inside {
+      stage ('Checkout') {
+        checkout scm
+      }
+      stage ('Install Gems') {
+        rvmSh 'whoami'
+        rvmSh 'which ruby'
+        rvmSh 'whereis rvm'
+        rvmSh 'which bundle'
+        rvmSh 'bundle install --path vendor/bundle --full-index --verbose'
+      }
+      stage ('Run Unit tests'){
+        rvmSh 'yarn install --check-files --ignore-engines'
+        rvmSh 'RAILS_ENV=test bundle exec rails db:migrate'
+        rvmSh 'npm test'
+      }
+    }
     
-    stage ('Checkout') {
-      checkout scm
-    }
-    stage ('Install Gems') {
-      rvmSh 'whoami'
-      rvmSh 'which ruby'
-      rvmSh 'whereis rvm'
-      rvmSh 'which bundle'
-      rvmSh 'bundle install --path vendor/bundle --full-index --verbose'
-    }
-    stage ('Run Unit tests'){
-      rvmSh 'yarn install --check-files --ignore-engines'
-      rvmSh 'RAILS_ENV=test bundle exec rails db:migrate'
-      rvmSh 'npm test'
-    }
     if (env.BRANCH_NAME == 'master') {
       stage ('Accept Staging Deployment') {
         deploy = canDeploy()
