@@ -1,4 +1,4 @@
-node('docker'){
+node{
   try {
     docker.image('jenkins-ubuntu-ruby-2.5.3:latest').inside {
       stage ('Checkout') {
