@@ -17,12 +17,10 @@ node{
     }
     stage ('Run Unit tests'){
       sh 'printenv'
-      echo "${TEST_DB_NAME}"
       echo "${env.TEST_DB_NAME}"
-      echo "${TEST_PORT}"
       echo "${env.TEST_PORT}"
       rvmSh 'yarn install --check-files --ignore-engines'
-      rvmSh "export TMP_TEST_DB=${TEST_DB_NAME} && RAILS_ENV=test bundle exec rails db:create && bundle exec rails db:migrate && PORT=${TEST_PORT} && PORT=$PORT CYPRESS_baseUrl=http://localhost:$PORT yarn start-test 'start_test' 'http://localhost:$PORT' cy:run && bundle exec rails db:drop"
+      rvmSh "export TMP_TEST_DB=${env.TEST_DB_NAME} && RAILS_ENV=test bundle exec rails db:create && bundle exec rails db:migrate && PORT=${env.TEST_PORT} && PORT=$PORT CYPRESS_baseUrl=http://localhost:$PORT yarn start-test 'start_test' 'http://localhost:$PORT' cy:run && bundle exec rails db:drop"
     }
     
     
