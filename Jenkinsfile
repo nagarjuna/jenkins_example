@@ -61,9 +61,21 @@ def rvmSh(String cmd) {
 }
 
 def canDeploy() {
-  def deploy = input {id: 'deploy', message: 'Let\'s deploy?' }
-  echo ('deploy:'+deploy)
-  deploy
+  when {
+    expression {
+      boolean deploy = false
+      try {
+        timeout(time: 1, unit: 'DAYS') {
+          input 'Let\'s deploy?'
+          deploy = true
+        }
+      } catch (final ignore) {
+        deploy = false
+      }
+      echo ('deploy:'+deploy)
+      return deploy
+    }
+  }
 }
 
 
