@@ -8,7 +8,7 @@
   },
   "scripts": {
     "cy:run": "npx cypress run --project spec --browser chrome",
-    "start_test": "bin/rails s -e test -p 3002 -P tmp/pids/server_test.pid",
+    "start_test": "bin/rails s -e test -p $PORT || 3002",
     "test": "start-server-and-test start_test http://localhost:3002 cy:run"
   }
 }
