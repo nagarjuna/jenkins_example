@@ -81,26 +81,21 @@
 
 
 node{
-  try {
-    withEnv(["TMP_TEST_DB=jenkins_example_${env.BUILD_ID}", "TEST_PORT=${3000 + (Math.abs( new Random().nextInt() % (99 - 10) ) + 10)}"]){
+  withEnv(["TMP_TEST_DB=jenkins_example_${env.BUILD_ID}", "TEST_PORT=${3000 + (Math.abs( new Random().nextInt() % (99 - 10) ) + 10)}"]){
+    try {
       stage ('Checkout') {
-        sh 'printenv | sort'
         checkout scm
       }
       
       stage ('Install Gems') {
-        rvmSh 'whoami'
-        rvmSh 'which ruby'
-        rvmSh 'whereis rvm'
-        rvmSh 'which bundle'
         rvmSh 'bundle install --path vendor/bundle --full-index --verbose'
       }
+
       stage ('Run Unit tests'){
         sh 'printenv | sort'
         rvmSh 'yarn install --check-files --ignore-engines'
-        rvmSh "export TMP_TEST_DB=jenkins_example_${env.BUILD_ID} && RAILS_ENV=test bundle exec rails db:create && RAILS_ENV=test bundle exec rails db:migrate && PORT=${(3000 + env.BUILD_ID.toInteger())} && PORT=${(3000 + env.BUILD_ID.toInteger())} CYPRESS_baseUrl=http://localhost:${(3000 + env.BUILD_ID.toInteger())} yarn start-test 'start_test' 'http://localhost:${(3000 + env.BUILD_ID.toInteger())}' cy:run"
+        rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB} && RAILS_ENV=test bundle exec rails db:create && RAILS_ENV=test bundle exec rails db:migrate && PORT=${env.TEST_PORT} && PORT=${env.TEST_PORT} CYPRESS_baseUrl=http://localhost:${env.TEST_PORT} yarn start-test 'start_test' 'http://localhost:${env.TEST_PORT}' cy:run"
       }
-      
       
       if (env.BRANCH_NAME == 'master') {
         stage ('Accept Staging Deployment') {
@@ -111,6 +106,7 @@ node{
           }
         }
       }
+
       def tag = sh(returnStdout: true, script: "git tag --contains | head -1").trim()
       if (tag) {
         stage ('Accept Production Deployment') {
@@ -122,17 +118,16 @@ node{
         }
       }
     }
-  }
-  
-  catch(err) {
     
-    notifyCulpritsOnEveryUnstableBuild()
-    currentBuild.result = 'FAILURE'
-    throw err
-  }
+    catch(err) {
+      notifyCulpritsOnEveryUnstableBuild()
+      currentBuild.result = 'FAILURE'
+      throw err
+    }
 
-  finally {
-    rvmSh "export TMP_TEST_DB=jenkins_example_${env.BUILD_ID} && RAILS_ENV=test bundle exec rails db:drop"
+    finally {
+      rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB} && RAILS_ENV=test bundle exec rails db:drop"
+    }
   }
 }
 
@@ -146,18 +141,18 @@ def rvmSh(String cmd) {
 
 def notifyCulpritsOnEveryUnstableBuild() {
   step([
-      $class                  : 'Mailer',
+      $class : 'Mailer',
       notifyEveryUnstableBuild: true,
-      recipients              : emailextrecipients([[$class: 'CulpritsRecipientProvider'], [$class: 'RequesterRecipientProvider']])
+      recipients : emailextrecipients([[$class: 'CulpritsRecipientProvider'], [$class: 'RequesterRecipientProvider']])
   ])
 }
 
 def canDeploy() {
-    def deploy = input(id: 'deploy',
-                                   message: 'Let\'s deploy?',
-                                   parameters: [
-                                     [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Deploy?', name: 'deploy']
-                                   ])
-    echo ('deploy:'+deploy)
+  def deploy = input(id: 'deploy', 
+    message: 'Let\'s deploy?', 
+    parameters: [ 
+      [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Deploy?', name: 'deploy']
+    ])
+  echo ('deploy:'+deploy)
   deploy
 }
