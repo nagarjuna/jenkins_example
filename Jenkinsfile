@@ -101,7 +101,7 @@ node{
     stage ('Run Unit tests'){
       sh 'printenv | sort'
       rvmSh 'yarn install --check-files --ignore-engines'
-      rvmSh "export TMP_TEST_DB=jenkins_example_${env.BUILD_ID} && RAILS_ENV=test bundle exec rails db:create && RAILS_ENV=test bundle exec rails db:migrate && PORT=${(3000 + env.BUILD_ID)} && PORT=${(3000 + env.BUILD_ID)} CYPRESS_baseUrl=http://localhost:${(3000 + env.BUILD_ID)} yarn start-test 'start_test' 'http://localhost:${(3000 + env.BUILD_ID)}' cy:run && RAILS_ENV=test bundle exec rails db:drop"
+      rvmSh "export TMP_TEST_DB=jenkins_example_${env.BUILD_ID} && RAILS_ENV=test bundle exec rails db:create && RAILS_ENV=test bundle exec rails db:migrate && PORT=${(3000 + env.BUILD_ID.toInteger())} && PORT=${(3000 + env.BUILD_ID.toInteger())} CYPRESS_baseUrl=http://localhost:${(3000 + env.BUILD_ID.toInteger())} yarn start-test 'start_test' 'http://localhost:${(3000 + env.BUILD_ID.toInteger())}' cy:run"
     }
     
     
@@ -127,10 +127,14 @@ node{
   }
   
   catch(err) {
-    rvmSh "export TMP_TEST_DB=jenkins_example_${env.BUILD_ID} && RAILS_ENV=test bundle exec rails db:drop"
+    
     notifyCulpritsOnEveryUnstableBuild()
     currentBuild.result = 'FAILURE'
     throw err
+  }
+
+  finally {
+    rvmSh "export TMP_TEST_DB=jenkins_example_${env.BUILD_ID} && RAILS_ENV=test bundle exec rails db:drop"
   }
 }
 
