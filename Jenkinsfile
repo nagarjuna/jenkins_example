@@ -45,9 +45,9 @@ pipeline {
       always {
         rvmSh "export TMP_TEST_DB=jenkins_example_${env.BUILD_ID} && RAILS_ENV=test bundle exec rails db:drop"
       }
-      failure {
-          mail to: nagarjuna.rachaneni@vandapharma.com, subject: 'The Pipeline failed :('
-      }
+      // failure {
+      //     mail to: nagarjuna.rachaneni@vandapharma.com, subject: 'The Pipeline failed :('
+      // }
   }
 }
 
