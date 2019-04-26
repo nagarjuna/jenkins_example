@@ -1,16 +1,17 @@
 pipeline {
   agent any
   environment {
-    TEST_DB_NAME ="jenkins_example_${ sh(returnStdout: true, script: 'echo cat /dev/urandom | env LC_CTYPE=C tr -dc \"a-zA-Z0-9\" | fold -w 5 | head -n 1') }"
+    TEST_DB_NAME = "jenkins_example_${ sh(returnStdout: true, script: 'echo cat /dev/urandom | env LC_CTYPE=C tr -dc \"a-zA-Z0-9\" | fold -w 5 | head -n 1') }"
     TEST_PORT = sh(returnStdout: true, script: 'echo $((3000 + RANDOM % 1000))')
   }
   stages {
     stage ('Install Gems') {
       steps {
         sh 'printenv | sort'
-        rvmSh 'whoami'
-        rvmSh 'which ruby'
-        rvmSh 'whereis rvm'
+        sh 'echo $TEST_DB_NAME'
+        sh 'whoami'
+        sh 'which ruby'
+        sh 'ruby -v'
         rvmSh 'which bundle'
         rvmSh 'bundle install --path vendor/bundle --full-index --verbose'
       }
@@ -19,8 +20,8 @@ pipeline {
       steps {
         sh 'printenv | sort'
         rvmSh 'yarn install --check-files --ignore-engines'
-        rvmSh "export TMP_TEST_DB=${TMP_TEST_DB} && RAILS_ENV=test bundle exec rails db:create && RAILS_ENV=test bundle exec rails db:migrate"
-        rvmSh "export PORT=${TEST_PORT} && PORT=${TEST_PORT} CYPRESS_baseUrl=http://localhost:${TEST_PORT} yarn start-test 'start_test' 'http://localhost:${TEST_PORT}' cy:run"
+        rvmSh "export TMP_TEST_DB=$TMP_TEST_DB && RAILS_ENV=test bundle exec rails db:create && RAILS_ENV=test bundle exec rails db:migrate"
+        rvmSh "export PORT=$TEST_PORT && PORT=$TEST_PORT CYPRESS_baseUrl=http://localhost:$TEST_PORT yarn start-test 'start_test' 'http://localhost:$TEST_PORT' cy:run"
       }
     }
 
