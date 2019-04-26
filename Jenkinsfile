@@ -6,20 +6,26 @@ pipeline {
   }
   stages {
     stage ('Checkout') {
-      sh 'printenv | sort'
-      checkout scm
+      steps {
+        sh 'printenv | sort'
+        checkout scm
+      }
     }
     stage ('Install Gems') {
-      rvmSh 'whoami'
-      rvmSh 'which ruby'
-      rvmSh 'whereis rvm'
-      rvmSh 'which bundle'
-      rvmSh 'bundle install --path vendor/bundle --full-index --verbose'
+      steps {
+        rvmSh 'whoami'
+        rvmSh 'which ruby'
+        rvmSh 'whereis rvm'
+        rvmSh 'which bundle'
+        rvmSh 'bundle install --path vendor/bundle --full-index --verbose'
+      }
     }
     stage ('Run Unit tests'){
-      sh 'printenv | sort'
-      rvmSh 'yarn install --check-files --ignore-engines'
-      rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB} && RAILS_ENV=test bundle exec rails db:create && RAILS_ENV=test bundle exec rails db:migrate && PORT=${env.TEST_PORT} && PORT=${env.TEST_PORT} CYPRESS_baseUrl=http://localhost:${env.TEST_PORT} yarn start-test 'start_test' 'http://localhost:${env.TEST_PORT}' cy:run"
+      steps {
+        sh 'printenv | sort'
+        rvmSh 'yarn install --check-files --ignore-engines'
+        rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB} && RAILS_ENV=test bundle exec rails db:create && RAILS_ENV=test bundle exec rails db:migrate && PORT=${env.TEST_PORT} && PORT=${env.TEST_PORT} CYPRESS_baseUrl=http://localhost:${env.TEST_PORT} yarn start-test 'start_test' 'http://localhost:${env.TEST_PORT}' cy:run"
+      }
     }
 
     stage ('Accept Staging Deployment') {
@@ -32,10 +38,14 @@ pipeline {
       failFast true
       parallel {
         stage ('Deploy to Staging Web'){
-          echo 'Will deploy to Staging Web'
+          steps {
+            echo 'Will deploy to Staging Web'
+          }
         }
         stage ('Deploy to Staging BG'){
-          echo 'Will deploy to Staging BG'
+          steps {
+            echo 'Will deploy to Staging BG'
+          }
         }
       }
     }
@@ -47,7 +57,9 @@ pipeline {
         beforeAgent true
       }
       stage ('Deploy to Production'){
-        echo 'Will deploy to Production'
+        steps {
+          echo 'Will deploy to Production'
+        }
       }
     }
 
