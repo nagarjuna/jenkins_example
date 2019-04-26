@@ -9,9 +9,9 @@ pipeline {
       steps {
         sh 'printenv | sort'
         sh 'echo $TEST_DB_NAME'
-        sh 'whoami'
-        sh 'which ruby'
-        sh 'ruby -v'
+        // sh 'whoami'
+        // sh 'which ruby'
+        // sh 'ruby -v'
         rvmSh 'which bundle'
         rvmSh 'bundle install --path vendor/bundle --full-index --verbose'
       }
@@ -86,7 +86,7 @@ pipeline {
   }
   post {
       always {
-        rvmSh "export TMP_TEST_DB=${TMP_TEST_DB} && RAILS_ENV=test bundle exec rails db:drop"
+        rvmSh "export TMP_TEST_DB=$TMP_TEST_DB && RAILS_ENV=test bundle exec rails db:drop"
       }
       // failure {
       //     mail to: nagarjuna.rachaneni@vandapharma.com, subject: 'The Pipeline failed :('
