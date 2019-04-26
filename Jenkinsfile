@@ -1,49 +1,101 @@
 // pipeline {
 //   agent any
+//   environment {
+//     TMP_TEST_DB = "jenkins_example_${ sh(returnStdout: true, script: 'echo cat /dev/urandom | env LC_CTYPE=C tr -dc \"a-zA-Z0-9\" | fold -w 5 | head -n 1') }"
+//     TEST_PORT = sh(returnStdout: true, script: 'echo $((3000 + RANDOM % 1000))')
+//   }
 //   stages {
-//     environment {
-//       //Use Pipeline Utility Steps plugin to read information from pom.xml into env variables
-//       TEST_DB_NAME = sh('jenkins_example_$(cat /dev/urandom | env LC_CTYPE=C tr -dc "a-zA-Z0-9" | fold -w 5 | head -n 1)')
-//       TEST_PORT = sh('$((3000 + RANDOM % 1000))')
-//     }
-//     stage ('Checkout') {
-//       checkout scm
-//     }
 //     stage ('Install Gems') {
-//       rvmSh 'whoami'
-//       rvmSh 'which ruby'
-//       rvmSh 'whereis rvm'
-//       rvmSh 'which bundle'
-//       rvmSh 'bundle install --path vendor/bundle --full-index --verbose'
+//       steps {
+//         sh 'pwd ~/'
+//         sh 'printenv | sort'
+//         rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB}"
+
+//         rvmSh "echo $TMP_TEST_DB"
+//         // sh 'whoami'
+//         // sh 'which ruby'
+//         // sh 'ruby -v'
+//         rvmSh 'which bundle'
+//         rvmSh 'bundle install --path vendor/bundle --full-index --verbose'
+//       }
 //     }
 //     stage ('Run Unit tests'){
-//       sh 'printenv | sort'
-//       rvmSh 'yarn install --check-files --ignore-engines'
-//       rvmSh "export TMP_TEST_DB=jenkins_example_${env.BUILD_ID} && RAILS_ENV=test bundle exec rails db:create && RAILS_ENV=test bundle exec rails db:migrate && PORT=${(3000 + env.BUILD_ID)} && PORT=${(3000 + env.BUILD_ID)} CYPRESS_baseUrl=http://localhost:${(3000 + env.BUILD_ID)} yarn start-test 'start_test' 'http://localhost:${(3000 + env.BUILD_ID)}' cy:run && RAILS_ENV=test bundle exec rails db:drop"
+//       steps {
+//         sh 'printenv | sort'
+//         rvmSh 'yarn install --check-files --ignore-engines'
+//         // script {
+//         //   rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB} && RAILS_ENV=test bundle exec rails db:create && RAILS_ENV=test bundle exec rails db:migrate && PORT=${env.TEST_PORT} && PORT=${env.TEST_PORT} CYPRESS_baseUrl=http://localhost:${env.TEST_PORT} yarn start-test 'start_test' 'http://localhost:${env.TEST_PORT}' cy:run"
+//         // }
+//         sh "export TMP_TEST_DB=${env.TMP_TEST_DB}"
+//         sh "export PORT=${env.TEST_PORT}"
+//         rvmSh "RAILS_ENV=test bundle exec rails db:create; RAILS_ENV=test bundle exec rails db:migrate"
+//         rvmSh "${ "export PORT=${env.TEST_PORT}; PORT=${env.TEST_PORT} CYPRESS_baseUrl=http://localhost:${env.TEST_PORT} yarn start-test 'start_test' 'http://localhost:${env.TEST_PORT}' cy:run" }"
+//       }
 //     }
-//     if (env.BRANCH_NAME == 'master') {
-//       stage ('Accept Staging Deployment') {
-//         deploy = canDeploy()
-//         if(deploy) {
-//           stage 'Deploy to Staging'
-//             echo 'Will deploy to Staging'
+
+//     stage ('Accept Staging Deployment') {
+//       when {
+//         expression {
+//           return env.BRANCH_NAME == 'master' && canDeploy()
+//         }
+//         beforeAgent true
+//       }
+//       failFast true
+//       parallel {
+//         stage ('Deploy to Staging Web'){
+//           steps {
+//             echo 'Will deploy to Staging Web'
+//           }
+//         }
+//         stage ('Deploy to Staging BG'){
+//           steps {
+//             echo 'Will deploy to Staging BG'
+//           }
 //         }
 //       }
 //     }
-//     def tag = sh(returnStdout: true, script: "git tag --contains | head -1").trim()
-//     if (tag) {
-//       stage ('Accept Production Deployment') {
-//         deploy = canDeploy()
-//         if(deploy) {
-//           stage 'Deploy to Production'
+//     stage ('Accept Production Deployment') {
+//       when {
+//         expression {
+//           return sh(returnStdout: true, script: "git tag --contains | head -1").trim() != null && canDeploy()
+//         }
+//         beforeAgent true
+//       }
+//       failFast true
+//       parallel {
+//         stage ('Deploy to Production'){
+//           steps {
 //             echo 'Will deploy to Production'
+//           }
 //         }
 //       }
 //     }
+
+
+//     // if (env.BRANCH_NAME == 'master') {
+//     //   stage ('Accept Staging Deployment') {
+//     //     deploy = canDeploy()
+//     //     if(deploy) {
+//     //       stage 'Deploy to Staging'
+//     //         echo 'Will deploy to Staging'
+//     //     }
+//     //   }
+//     // }
+//     // def tag = sh(returnStdout: true, script: "git tag --contains | head -1").trim()
+//     // if (tag) {
+//     //   stage ('Accept Production Deployment') {
+//     //     deploy = canDeploy()
+//     //     if(deploy) {
+//     //       stage 'Deploy to Production'
+//     //         echo 'Will deploy to Production'
+//     //     }
+//     //   }
+//     // }
 //   }
 //   post {
 //       always {
-//         rvmSh "export TMP_TEST_DB=jenkins_example_${env.BUILD_ID} && RAILS_ENV=test bundle exec rails db:drop"
+//         sh "export TMP_TEST_DB=${env.TMP_TEST_DB}"
+//         rvmSh "RAILS_ENV=test bundle exec rails db:drop"
 //       }
 //       // failure {
 //       //     mail to: nagarjuna.rachaneni@vandapharma.com, subject: 'The Pipeline failed :('
@@ -52,12 +104,9 @@
 // }
 
 // def rvmSh(String cmd) {
-//   final RVM_HOME = '$PATH:/var/lib/jenkins/.rvm/bin'
 //   def sourceRvm = 'source /var/lib/jenkins/.rvm/scripts/rvm'
-//   def useRuby = "/var/lib/jenkins/.rvm/bin/rvm use --install 2.5.3"
-//   withEnv(["PATH=$PATH:/var/lib/jenkins/.rvm/bin"]) {
-//     sh "${sourceRvm}; ${useRuby}; $cmd"
-//   }
+//   def useRuby = "/var/lib/jenkins/.rvm/bin/rvm use 2.5.3"
+//   sh "${sourceRvm}; ${useRuby}; $cmd"
 // }
 
 // def canDeploy() {
@@ -66,7 +115,7 @@
 //       boolean deploy = false
 //       try {
 //         timeout(time: 1, unit: 'DAYS') {
-//           input 'Let\'s deploy?'
+//           input { message: 'Let\'s deploy?' }
 //           deploy = true
 //         }
 //       } catch (final ignore) {
@@ -92,7 +141,6 @@ node{
       }
 
       stage ('Run Unit tests'){
-        sh 'printenv | sort'
         rvmSh 'yarn install --check-files --ignore-engines'
         rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB} && RAILS_ENV=test bundle exec rails db:create && RAILS_ENV=test bundle exec rails db:migrate && PORT=${env.TEST_PORT} && PORT=${env.TEST_PORT} CYPRESS_baseUrl=http://localhost:${env.TEST_PORT} yarn start-test 'start_test' 'http://localhost:${env.TEST_PORT}' cy:run"
       }
@@ -101,8 +149,15 @@ node{
         stage ('Accept Staging Deployment') {
           deploy = canDeploy()
           if(deploy) {
-            stage 'Deploy to Staging'
-              echo 'Will deploy to Staging'
+            parallel 'web': {
+                stage ('Deploy to Staging Web') {
+                  echo 'Will deploy to Staging Web'
+                }
+              }, 'bg': {
+                stage ('Deploy to Staging BG') {
+                  echo 'Will deploy to Staging BG'
+                }
+              }
           }
         }
       }
@@ -151,7 +206,7 @@ def canDeploy() {
   def deploy = input(id: 'deploy', 
     message: 'Let\'s deploy?', 
     parameters: [ 
-      [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Deploy?', name: 'deploy']
+      [$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'deploy']
     ])
   echo ('deploy:'+deploy)
   deploy
