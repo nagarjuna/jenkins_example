@@ -7,6 +7,7 @@ pipeline {
   stages {
     stage ('Install Gems') {
       steps {
+        sh 'printenv | sort'
         rvmSh 'whoami'
         rvmSh 'which ruby'
         rvmSh 'whereis rvm'
@@ -92,10 +93,9 @@ pipeline {
 }
 
 def rvmSh(String cmd) {
-  final RVM_HOME = '$PATH:/var/lib/jenkins/.rvm/bin'
   def sourceRvm = 'source /var/lib/jenkins/.rvm/scripts/rvm'
   def useRuby = "/var/lib/jenkins/.rvm/bin/rvm use --install 2.5.3"
-  step {
+  steps {
     sh "${sourceRvm}; ${useRuby}; $cmd"
   }
 }
