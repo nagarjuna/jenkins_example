@@ -56,9 +56,12 @@ pipeline {
         }
         beforeAgent true
       }
-      stage ('Deploy to Production'){
-        steps {
-          echo 'Will deploy to Production'
+      failFast true
+      parallel {
+        stage ('Deploy to Production'){
+          steps {
+            echo 'Will deploy to Production'
+          }
         }
       }
     }
