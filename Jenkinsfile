@@ -25,8 +25,9 @@ pipeline {
         rvmSh 'yarn install --check-files --ignore-engines'
         sh "export TMP_TEST_DB=${env.TMP_TEST_DB}"
         sh "export PORT=${env.TEST_PORT}"
+        sh "export CYPRESS_BASE_URL=http://localhost:${env.TEST_PORT}"
         rvmSh "RAILS_ENV=test bundle exec rails db:create; RAILS_ENV=test bundle exec rails db:migrate"
-        rvmSh "${"export PORT=${env.TEST_PORT}"}; ${"export CYPRESS_BASE_URL=http://localhost:${env.TEST_PORT}"}; ${ "PORT=${env.TEST_PORT} yarn start-test 'start_test' 'http://localhost:${env.TEST_PORT}' cy:run" }"
+        rvmSh "PORT=${env.TEST_PORT} yarn start-test 'start_test' 'http://localhost:${env.TEST_PORT}' cy:run"
       }
     }
 
