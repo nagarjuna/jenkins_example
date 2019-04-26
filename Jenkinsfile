@@ -1,14 +1,14 @@
 pipeline {
   agent any
   environment {
-    TEST_DB_NAME = "jenkins_example_${ sh(returnStdout: true, script: 'echo cat /dev/urandom | env LC_CTYPE=C tr -dc \"a-zA-Z0-9\" | fold -w 5 | head -n 1') }"
+    TMP_TEST_DB = "jenkins_example_${ sh(returnStdout: true, script: 'echo cat /dev/urandom | env LC_CTYPE=C tr -dc \"a-zA-Z0-9\" | fold -w 5 | head -n 1') }"
     TEST_PORT = sh(returnStdout: true, script: 'echo $((3000 + RANDOM % 1000))')
   }
   stages {
     stage ('Install Gems') {
       steps {
         sh 'printenv | sort'
-        sh "echo ${env.TEST_DB_NAME}"
+        sh "echo ${env.TMP_TEST_DB}"
         // sh 'whoami'
         // sh 'which ruby'
         // sh 'ruby -v'
