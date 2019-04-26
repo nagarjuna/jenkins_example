@@ -7,6 +7,7 @@ pipeline {
   stages {
     stage ('Install Gems') {
       steps {
+        sh 'pwd ~/'
         sh 'printenv | sort'
         sh "echo ${env.TMP_TEST_DB}"
         // sh 'whoami'
@@ -20,8 +21,8 @@ pipeline {
       steps {
         sh 'printenv | sort'
         rvmSh 'yarn install --check-files --ignore-engines'
-        rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB} && RAILS_ENV=test bundle exec rails db:create && RAILS_ENV=test bundle exec rails db:migrate"
-        rvmSh "export PORT=${env.TEST_PORT} && PORT=${env.TEST_PORT} CYPRESS_baseUrl=http://localhost:${env.TEST_PORT} yarn start-test 'start_test' 'http://localhost:${env.TEST_PORT}' cy:run"
+        rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB} ; RAILS_ENV=test bundle exec rails db:create ; RAILS_ENV=test bundle exec rails db:migrate"
+        rvmSh "export PORT=${env.TEST_PORT} ; PORT=${env.TEST_PORT} CYPRESS_baseUrl=http://localhost:${env.TEST_PORT} yarn start-test 'start_test' 'http://localhost:${env.TEST_PORT}' cy:run"
       }
     }
 
@@ -86,7 +87,7 @@ pipeline {
   }
   post {
       always {
-        rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB} && RAILS_ENV=test bundle exec rails db:drop"
+        rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB} ; RAILS_ENV=test bundle exec rails db:drop"
       }
       // failure {
       //     mail to: nagarjuna.rachaneni@vandapharma.com, subject: 'The Pipeline failed :('
