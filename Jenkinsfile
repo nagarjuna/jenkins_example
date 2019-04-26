@@ -19,15 +19,15 @@ pipeline {
       steps {
         sh 'printenv | sort'
         rvmSh 'yarn install --check-files --ignore-engines'
-        rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB} && RAILS_ENV=test bundle exec rails db:create && RAILS_ENV=test bundle exec rails db:migrate"
-        rvmSh "export PORT=${env.TEST_PORT} && PORT=${env.TEST_PORT} CYPRESS_baseUrl=http://localhost:${env.TEST_PORT} yarn start-test 'start_test' 'http://localhost:${env.TEST_PORT}' cy:run"
+        rvmSh "export TMP_TEST_DB=${TMP_TEST_DB} && RAILS_ENV=test bundle exec rails db:create && RAILS_ENV=test bundle exec rails db:migrate"
+        rvmSh "export PORT=${TEST_PORT} && PORT=${TEST_PORT} CYPRESS_baseUrl=http://localhost:${TEST_PORT} yarn start-test 'start_test' 'http://localhost:${TEST_PORT}' cy:run"
       }
     }
 
     stage ('Accept Staging Deployment') {
       when {
         expression {
-          return env.BRANCH_NAME == 'master' && canDeploy()
+          return BRANCH_NAME == 'master' && canDeploy()
         }
         beforeAgent true
       }
@@ -85,7 +85,7 @@ pipeline {
   }
   post {
       always {
-        rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB} && RAILS_ENV=test bundle exec rails db:drop"
+        rvmSh "export TMP_TEST_DB=${TMP_TEST_DB} && RAILS_ENV=test bundle exec rails db:drop"
       }
       // failure {
       //     mail to: nagarjuna.rachaneni@vandapharma.com, subject: 'The Pipeline failed :('
