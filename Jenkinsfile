@@ -9,7 +9,7 @@ pipeline {
       steps {
         sh 'pwd ~/'
         sh 'printenv | sort'
-        sh "echo ${env.TMP_TEST_DB}"
+        sh "echo ${env.TMP_TEST_DB}; echo ${env.TEST_PORT}; "
         // sh 'whoami'
         // sh 'which ruby'
         // sh 'ruby -v'
@@ -21,8 +21,8 @@ pipeline {
       steps {
         sh 'printenv | sort'
         rvmSh 'yarn install --check-files --ignore-engines'
-        rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB} ; RAILS_ENV=test bundle exec rails db:create ; RAILS_ENV=test bundle exec rails db:migrate"
-        rvmSh "export PORT=${env.TEST_PORT} ; PORT=${env.TEST_PORT} CYPRESS_baseUrl=http://localhost:${env.TEST_PORT} yarn start-test 'start_test' 'http://localhost:${env.TEST_PORT}' cy:run"
+        rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB}; RAILS_ENV=test bundle exec rails db:create; RAILS_ENV=test bundle exec rails db:migrate"
+        rvmSh "export PORT=${env.TEST_PORT}; PORT=${env.TEST_PORT} CYPRESS_baseUrl=http://localhost:${env.TEST_PORT} yarn start-test 'start_test' 'http://localhost:${env.TEST_PORT}' cy:run"
       }
     }
 
@@ -87,7 +87,7 @@ pipeline {
   }
   post {
       always {
-        rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB} ; RAILS_ENV=test bundle exec rails db:drop"
+        rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB}; RAILS_ENV=test bundle exec rails db:drop"
       }
       // failure {
       //     mail to: nagarjuna.rachaneni@vandapharma.com, subject: 'The Pipeline failed :('
@@ -97,7 +97,7 @@ pipeline {
 
 def rvmSh(String cmd) {
   def sourceRvm = 'source /var/lib/jenkins/.rvm/scripts/rvm'
-  def useRuby = "/var/lib/jenkins/.rvm/bin/rvm use --install 2.5.3"
+  def useRuby = "/var/lib/jenkins/.rvm/bin/rvm use 2.5.3"
   sh "${sourceRvm}; ${useRuby}; $cmd"
 }
 
