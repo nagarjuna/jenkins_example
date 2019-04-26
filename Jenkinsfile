@@ -151,11 +151,11 @@ node{
           if(deploy) {
             parallel 'web': {
                 stage ('Deploy to Staging Web') {
-                  echo 'Will deploy to Staging Web'
+                  rvmSh 'bundle exec mina web deploy'
                 }
               }, 'bg': {
                 stage ('Deploy to Staging BG') {
-                  echo 'Will deploy to Staging BG'
+                  echo 'bundle exec mina bg deploy'
                 }
               }
           }
