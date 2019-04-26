@@ -1,0 +1,5 @@
+set :domain, '192.168.72.72'
+set :deploy_to, '/home/vagrant/projects/jenkins_example/web'
+set :user, 'vagrant'
+# set :identity_file, '~/Documents/projects/vanda/insecure_private_key'
+set :identity_file, '~/insecure_private_key'
