@@ -1,11 +1,10 @@
 pipeline {
   agent any
+  environment {
+    TEST_DB_NAME = sh('jenkins_example_$(cat /dev/urandom | env LC_CTYPE=C tr -dc "a-zA-Z0-9" | fold -w 5 | head -n 1)')
+    TEST_PORT = sh('$((3000 + RANDOM % 1000))')
+  }
   stages {
-    environment {
-      //Use Pipeline Utility Steps plugin to read information from pom.xml into env variables
-      TEST_DB_NAME = sh('jenkins_example_$(cat /dev/urandom | env LC_CTYPE=C tr -dc "a-zA-Z0-9" | fold -w 5 | head -n 1)')
-      TEST_PORT = sh('$((3000 + RANDOM % 1000))')
-    }
     stage ('Checkout') {
       sh 'printenv | sort'
       checkout scm
