@@ -9,7 +9,9 @@ pipeline {
       steps {
         sh 'pwd ~/'
         sh 'printenv | sort'
-        sh "echo ${env.TMP_TEST_DB}; echo ${env.TEST_PORT}; "
+        rvmSh "export TMP_TEST_DB=${env.TMP_TEST_DB}"
+
+        rvmSh "echo $TMP_TEST_DB"
         // sh 'whoami'
         // sh 'which ruby'
         // sh 'ruby -v'
