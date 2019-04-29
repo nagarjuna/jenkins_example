@@ -174,7 +174,7 @@ node{
       }
     }
     
-    catch(err) {
+    catch (err) {
       notifyCulpritsOnEveryUnstableBuild()
       currentBuild.result = 'FAILURE'
       throw err
@@ -203,13 +203,18 @@ def notifyCulpritsOnEveryUnstableBuild() {
 }
 
 def canDeploy() {
-  def deploy = false 
-  timeout(time: 30, unit: 'MINUTES') {
-    deploy = input(id: 'deploy', 
-      message: 'Let\'s deploy?', 
-      parameters: [ 
-        [$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'deploy']
-      ])
+  def deploy = false
+  try {
+    timeout(time: 30, unit: 'MINUTES') {
+      deploy = input(id: 'deploy', 
+        message: 'Let\'s deploy?', 
+        parameters: [ 
+          [$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'deploy']
+        ])
+    }
+  } catch (err) {
+    deploy = false
+    echo ("Input timeout expired, skippig deploment")
   }
   echo ('deploy:'+deploy)
   deploy
