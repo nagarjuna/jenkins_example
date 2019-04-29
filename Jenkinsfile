@@ -130,7 +130,7 @@
 
 
 node{
-  withEnv(["TMP_TEST_DB=jenkins_example_${env.BUILD_ID}", "TEST_PORT=${3000 + (Math.abs( new Random().nextInt() % (99 - 10) ) + 10)}"]){
+  withEnv(["TMP_TEST_DB=jenkins_example_${env.BUILD_ID}_${ (Math.abs( new Random().nextInt() % (99 - 10) ) + 10) }", "TEST_PORT=${3000 + (Math.abs( new Random().nextInt() % (99 - 10) ) + 10)}"]){
     try {
       stage ('Checkout') {
         checkout scm
@@ -155,7 +155,7 @@ node{
                 }
               }, 'bg': {
                 stage ('Deploy to Staging BG') {
-                  echo 'bundle exec mina bg deploy'
+                  rvmSh 'bundle exec mina bg deploy'
                 }
               }
           }
@@ -203,11 +203,14 @@ def notifyCulpritsOnEveryUnstableBuild() {
 }
 
 def canDeploy() {
-  def deploy = input(id: 'deploy', 
-    message: 'Let\'s deploy?', 
-    parameters: [ 
-      [$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'deploy']
-    ])
+  def deploy = false 
+  timeout(time: 30, unit: 'MINUTES') {
+    deploy = input(id: 'deploy', 
+      message: 'Let\'s deploy?', 
+      parameters: [ 
+        [$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'deploy']
+      ])
+  }
   echo ('deploy:'+deploy)
   deploy
 }
