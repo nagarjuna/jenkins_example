@@ -174,7 +174,7 @@ node{
       }
     }
     
-    catch(err) {
+    catch (err) {
       notifyCulpritsOnEveryUnstableBuild()
       currentBuild.result = 'FAILURE'
       throw err
@@ -212,6 +212,9 @@ def canDeploy() {
           [$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'deploy']
         ])
     }
+  } catch (err) {
+    deploy = false
+    echo ("Input timeout expired, skippig deploment")
   }
   echo ('deploy:'+deploy)
   deploy
