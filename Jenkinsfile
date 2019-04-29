@@ -203,13 +203,15 @@ def notifyCulpritsOnEveryUnstableBuild() {
 }
 
 def canDeploy() {
-  def deploy = false 
-  timeout(time: 30, unit: 'MINUTES') {
-    deploy = input(id: 'deploy', 
-      message: 'Let\'s deploy?', 
-      parameters: [ 
-        [$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'deploy']
-      ])
+  def deploy = false
+  try {
+    timeout(time: 30, unit: 'MINUTES') {
+      deploy = input(id: 'deploy', 
+        message: 'Let\'s deploy?', 
+        parameters: [ 
+          [$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'deploy']
+        ])
+    }
   }
   echo ('deploy:'+deploy)
   deploy
